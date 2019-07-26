@@ -8,7 +8,7 @@ import (
 //Link: https://open.kattis.com/problems/aaah
 //Difficulty Level: 1.6
 //ACCEPTED
-func main() {
+func aaah() {
 	var a, b string
 	var res string
 	fmt.Scanf("%s", &a)
