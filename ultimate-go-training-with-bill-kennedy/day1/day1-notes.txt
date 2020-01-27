@@ -2,11 +2,16 @@
 
 How do we turn this piece of code into an engineering product?
     * Lines of code is a good metric for a the success of a team.
-    * There are exceptions to every rule. Engineering is about knowing _when_ to take exceptions. 
+    * There are exceptions to every rule. Engineering is about knowing _when_ to take exceptions.
+    * You are writing code for people, not tests. 
 
 2 foundational guidelines: 
     1. do not make things easy to do, make them easy to understand (even if it is a bit tedious)
     2. every encapsulation must define a new semantic/behavior where one is absolutely precise
+
+* absolute rules:
+    1. if you use value semantics, you should use it in all cases; BUT you can use pointer semantics as long as it is a leaf function (no more business logic goes down that path - one off shares)
+    2. you can never start with pointer semantics and then switch to a function that uses value semantics - if you do this, it is pure death
 
 Go is NOT perfect:
     * too many ways to declare variables (standards? JUST BE CONSISTENT! in Go, every byte gets set to zero-value)
@@ -190,5 +195,33 @@ Slices: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/s
         * we should instead include structs instead so when you update a user, you update the underlying structs
 
 
+Decoupling: https://github.com/ardanlabs/gotraining/tree/master/topics/courses/go/language
+* problem you are trying to solve and performance is defined in the _data_. 
+* if the problem is changing, then what really is changing? the data 
+* want to minize the amount of changes in the code when the data changes
+* decouple code through behavior - you MUST have a concrete solution to the problem first then discover the decoupling in the refactor
+* if you are adding interfaces just to write tests, you are killing your software
+* giving data behavior is an exception, not a rule - object-oriented programming makes it difficult to keep a mental model, unlike functional
+    * when can we make exceptions?
+    * mechanics of giving data behaviors:
+        * Methods: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/methods/
+            * do not separate methods across different files 
+            * using value semantics mutation API: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/methods/example5/example5.go
+    * if you're not sure what to use when defining your own types (structs), use pointer semantics (because some types can't have copies)
+        * if you're using Time, you may want to create a new data point by making a copy (value semantics)
+        * if you're updating a user's name, then you want to make a small mutation, not create a new user (pointer semantics)
+            * if you want to know which semantic was chosen, look at the factory function (directly under the struct definition)
+            * don't use the AWS APIs as an example of good data semantics - they have to use code gen
+            * exception in Time package: there are 4 functions that use pointer semantics because they use unmarshall and decode
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/methods/example1/example1.go
+    * Go is able to use pointer semantics in a method definition even though we may not have passed in the pointer in the function call
+    * why would we be using value semantics on a group of users? that's dumb
+* Setters: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/methods/example3/example3.go
+    * if users have rights to change states, we should open up access for that user
+    * Go separates the ideas of state and behavior - if you make `val test data` if data is a struct, `test` does not inherit the functions that interact with data
+    * instead of calling d.displayName() -> you can decouple by `f1 := d.displayName; f1()` using a value receiver
+        * f1 is a pointer to a data structure that has a pointer to the displayName function
+        * f1 will also get a copy of the data -> "Bill" but that has to live on the heap
+    * flaws in escape analysis: double indirection since we have a pointer pointing to a pointer just sends that second pointer's information to the heap
 
-
+Polymorphism: a piece of code changes its behavior depending on the concrete data it is operating on

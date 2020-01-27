@@ -24,4 +24,10 @@ func main() {
 
 	println("\nSlices exercise 3:")
 	slices3()
+
+	println("\nMethods exercise 1:")
+	methods1()
+
+	println("\nMethods exercise 2:")
+	methods2()
 }
