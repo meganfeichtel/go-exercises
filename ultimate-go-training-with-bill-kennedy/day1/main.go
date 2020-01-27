@@ -6,4 +6,7 @@ func main() {
 
 	println("Data-semantics (sharing data) version:")
 	valueof2()
+
+	println("Escape analysis:")
+	escapeAnalysis()
 }

@@ -2,21 +2,25 @@
 
 How do we turn this piece of code into an engineering product?
     * Lines of code is a good metric for a the success of a team.
+    * There are exceptions to every rule. Engineering is about knowing _when_ to take exceptions. 
+
+2 foundational guidelines: 
+    1. do not make things easy to do, make them easy to understand (even if it is a bit tedious)
+    2. every encapsulation must define a new semantic/behavior where one is absolutely precise
 
 Go is NOT perfect:
     * too many ways to declare variables (standards? JUST BE CONSISTENT! in Go, every byte gets set to zero-value)
         * zero-value definition: `var count int`
         * package-level variables: `var global string = "hello` //must have keyword if outside of definitions
         * short variable declaration: `count := 10`
+    * if you are using a value definition, always use value-semantic construction & leverage the & operator
+        * if you are constructing on a return, you can use pointer-semantic construction
 
 https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
 * industry where performance became the highest priority and not the maintainability of the code we're writing
 * "The software business is one of the few places we teach people to write before we teach them to read." - Tom Love (inventor of Objective C)
 * mental models: You must constantly make sure your mental model of your projects are clear. When you can't remember where a piece of logic is or you can't remember how something works, you are losing your mental model of the code. This is a clear indication that refactoring is a must. Focus time on structuring code that provides the best mental model possible and code review for this as well.
     * https://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two
-* 2 foundational guidelines: 
-    1. do not make things easy to do, make them easy to understand
-    2. every encapsulation must define a new semantic/behavior where one is absolutely precise
 * productivity vs performance: the belief that the hardware can make slow code faster is wrong, need to have perofrmance be top priority
     * hardware hasn't really changed in the last 2 decades
     * how can you get latency to work for you?
@@ -51,7 +55,7 @@ Value-of exercise: https://play.golang.org/p/9kxh18hd_BT
 * all you need to know is one layer below where you are coding
 * Goroutine is an application level thread (co-routine) that gets attached to ever OS thread/processor in the computer
     * The machine of the processor gets a stack and then the Gorountine also gets its own stack
-    * Go allocates a 2K byte stack (segmented) - paths of execution need to be as light-weight as possible so that many Goroutines can run
+    * Go allocates a 2K byte stack - paths of execution need to be as light-weight as possible so that many Goroutines can run
     * Goroutine is locked in timeout in the stackframe (takes frame off stack), only memeory it can read-write is in that stackframe
     * If we can isolate the mutations in small-amounts of memory, we can handle the problems easier
     * data transformations (new function definitions) get called in separate stackframes & will operate on it's own copy of the data
@@ -61,6 +65,37 @@ Value-of exercise: https://play.golang.org/p/9kxh18hd_BT
     * type derives 2 pieces of info: how much memory to write and what data it implements (how to read it)
     * we want to know that the data is shared and _what_ that data is
 
+https://play.golang.org/p/n9HijcdZ3pT 
+* Writing multi-threaded software is really hard, so Go tries to make some of that easier.
+* escape analysis is where the compiler tries to determine where the value should be constructed/analyzed
+    * does this value get to be constructed on the stack or on the heap?
+    * looks at how something is shared - construction tells you nothing
+    * if we're sharing data down the call stack, that's okay ( we can share down with integrity - line 45)
+    * sharing data up is not okay (line 47) because the frame would get cleaned up, so instead Go is going to escape and the value will get constructed on the heap
+    * "construct what you need and I will determine where it goes and how you can access it" - hiding the complexity of memory management
+    * there is a COST of heap allocation (will show up in a profiler) because we're sharing up the call-stack
+        * by defining the user `u := &user{}` instead of returning `&u`, we take away readability of cost, since you now look at 2 lines of code to determine the sharing of data (pointer-semantic construction)
+        * use value-semantic construction when you are doing value definitions
+    * ecape-analysis report: `go build -gcflags -m=2`
+* ownership: the function that performs the function is the one that owns the value, so does something else need the value of the function if returned?
+* more on heap allocation:
+    * stackframes are calculated at compile-time but some types are not known and automatically put to the heap
+        * ex: slices with variable lengths are not known at compile-time and may automatically become heap-allocation
+        * if the slice length is hardcoded, it can be allocated in the stack
+    * compiler speed is more important in Go (won't see tail-recursive performance improvements)
+    * what happens if we run out of memory in the 2K stack? 
+        * Go does not use segmented stacks, instead it uses **contiguous stacks** 
+        * if the stack has to grow, the new stack of 2-times the size will be created and values will be copied over to the new location
+    * garbage collector wants to minimize size of the heap as much as possible and it wants to make sure the application-throughput latency is as minimal as possible
+        * how can we be mechanically sympathetic with the garbage collector?
+        * Go's garbage collector will kick off as soon as 4megs of memory is allocated across the field of heap memory
+        * 3 phases of garbage collection:
+            1. mark start - stop the world STW phase (no applcation work getting done - wants to keep this down to 100 microseconds or less)
+            2. Marking - continuous 
+            3. mark terminate - STW
+        * ex: if you have 4-threaded Go program, you have 4 Processors with a Go Routine each (with other Go apps queued up)
+            * 100% CPU = 4 Goroutines
+            * write-barrier flag: allows concurrent access in the next phase to NOT cause any integrity issues while application work is getting done
 
 
 
