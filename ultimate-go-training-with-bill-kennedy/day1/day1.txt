@@ -40,7 +40,8 @@ https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
     4. Performance: we must compute less to get the results we need
         * performance does matter, but it should not ever outweigh readability 
 
-https://play.golang.org/p/9kxh18hd_BT  
+https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/README.md 
+Value-of exercise: https://play.golang.org/p/9kxh18hd_BT  
 * mechanics vs semantics:
     * mechanics are how things are implemented (change all the time)
     * semantics are understanding the behaviors
@@ -54,6 +55,11 @@ https://play.golang.org/p/9kxh18hd_BT
     * Goroutine is locked in timeout in the stackframe (takes frame off stack), only memeory it can read-write is in that stackframe
     * If we can isolate the mutations in small-amounts of memory, we can handle the problems easier
     * data transformations (new function definitions) get called in separate stackframes & will operate on it's own copy of the data
+* When the data is APPLICATION-WIDE, we can't use value semantics, we HAVE TO USE pointer semantics
+    * we do want to limit this because it causes bugs, but if used correctly, it will help with making the code easier to maintain/read
+* TYPE is everything!
+    * type derives 2 pieces of info: how much memory to write and what data it implements (how to read it)
+    * we want to know that the data is shared and _what_ that data is
 
 
 

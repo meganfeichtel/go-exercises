@@ -23,3 +23,24 @@ func increment(inc int) {
 	inc++
 	println("inc:\tValue Of[", inc, "]\tAddr Of[", &inc, "]")
 }
+
+func valueof2() {
+
+	// Declare variable of type int with a value of 10.
+	count := 10
+
+	// Display the "value of" and "address of" count.
+	println("count:\tValue Of[", count, "]\tAddr Of[", &count, "]")
+
+	// Pass the "value of" the count.
+	increment2(&count)
+
+	println("count:\tValue Of[", count, "]\tAddr Of[", &count, "]")
+}
+
+func increment2(inc *int) {
+
+	// Increment the "value of" inc.
+	*inc++
+	println("inc:\tValue Of[", *inc, "]\tAddr Of[", &inc, "]")
+}
