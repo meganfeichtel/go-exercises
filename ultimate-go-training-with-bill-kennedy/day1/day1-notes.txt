@@ -17,7 +17,7 @@ Go is NOT perfect:
         * if you are constructing on a return, you can use pointer-semantic construction
     * if people write in tight-loops (i.e. no function calls), then scheduling/garbage collection can't run
 
-https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
+Intro: https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
 * industry where performance became the highest priority and not the maintainability of the code we're writing
 * "The software business is one of the few places we teach people to write before we teach them to read." - Tom Love (inventor of Objective C)
 * mental models: You must constantly make sure your mental model of your projects are clear. When you can't remember where a piece of logic is or you can't remember how something works, you are losing your mental model of the code. This is a clear indication that refactoring is a must. Focus time on structuring code that provides the best mental model possible and code review for this as well.
@@ -45,7 +45,7 @@ https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
     4. Performance: we must compute less to get the results we need
         * performance does matter, but it should not ever outweigh readability 
 
-https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/README.md 
+Pointers: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/pointers/README.md 
 Value-of exercise: https://play.golang.org/p/9kxh18hd_BT  
 * mechanics vs semantics:
     * mechanics are how things are implemented (change all the time)
@@ -66,7 +66,7 @@ Value-of exercise: https://play.golang.org/p/9kxh18hd_BT
     * type derives 2 pieces of info: how much memory to write and what data it implements (how to read it)
     * we want to know that the data is shared and _what_ that data is
 
-https://play.golang.org/p/n9HijcdZ3pT 
+Garbage collection: https://play.golang.org/p/n9HijcdZ3pT 
 * Writing multi-threaded software is really hard, so Go tries to make some of that easier.
 * escape analysis is where the compiler tries to determine where the value should be constructed/analyzed
     * does this value get to be constructed on the stack or on the heap?
@@ -112,6 +112,31 @@ https://play.golang.org/p/n9HijcdZ3pT
             * Mark-assist could take up another processor (down to 50% cpu throughput), so GC will kick of earlier than the GOGC percentage to try to limit that time that takes up the CPU
         * Reduce GC? don't write that much to the heap - throughput will go up
         
+
+Caching: https://github.com/ardanlabs/gotraining/tree/master/topics/go/testing/benchmarks/caching
+And: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/arrays
+* Benchmarking: the machine must be idle to be able to run a pure benchmark test
+* Main memory is so slow to access that you should assume it's not even there - caching allows for a lot faster data retrieval
+* **Performance is about how efficiently you get data into the Processor.**
+* Caches: 
+    * L1 - 64KB Cache (Per Core), 4 cycles of latency at 1.3 ns, Stalls for 16 instructions
+    * L2 - 256KB Cache (Per Core), 12 cycles of latency at 4 ns, Stalls for 48 instructions
+    * L3 - 8MB Cache, 40 cycles of latency at 13.3 ns, Stalls for 160 instructions
+    * Main Memory - 100 cycle of latency at 33.3 ns (~100ns), Stalled for 400 instructions
+    * Translation Lookaside Buffer (TLB) - virtual address mapper back to the physical memory (OS messaging page and offsets)
+        * if data is not in the TLB, then OS has to scan all its tables and maybe even the VM paging tables, which is very slow
+* Cache line: moves data from main memory to cache, and pull in the cache line from Machine to L1 or L2 (and a copy to L3, as well)
+    * hardware runs software programs, one is a prefetcher (tries to pull cache lines into the hardware before they are needed, but they need help)
+        * we have to write code to allow prefetchers to know about what data is needed before it is actually needed
+        * write code that creates predictables access patterns to memory to help pull that data in 
+        * allocate contiguous blocks of memory and then walk down that data in linear-traversal strides; ARRAYS!
+* Arrays will beat most everything for speed and is most important data structure as it relates to the hardware.
+* Go does NOT have a Virtual Machine, it uses Runtime
+    * linked lists are not efficient (object-oriented) but JVM is able to convert linked lists efficiently into row-traversed data
+    * Go just gives array, slice (slices are vector arrays under the hood), and maps (hash algo with bucketing system and constantly make data contiguous) to make code mechanically sympathetic
+        * slice is the besttttttt for Go
+
+Arrays and Slices: 
 
 
 
