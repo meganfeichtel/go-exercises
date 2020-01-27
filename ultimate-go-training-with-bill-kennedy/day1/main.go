@@ -1,12 +1,18 @@
 package main
 
 func main() {
-	println("Value-semantics (own cope of data) version:")
+	println("\nValue-semantics (own cope of data) version:")
 	valueof()
 
-	println("Data-semantics (sharing data) version:")
+	println("\nData-semantics (sharing data) version:")
 	valueof2()
 
-	println("Escape analysis:")
+	println("\nEscape analysis:")
 	escapeAnalysis()
+
+	println("\nArrays exercise 1:")
+	arrays1()
+
+	println("\nArrays exercise 2:")
+	arrays2()
 }

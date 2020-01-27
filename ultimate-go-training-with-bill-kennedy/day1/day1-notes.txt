@@ -136,7 +136,24 @@ And: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/arra
     * Go just gives array, slice (slices are vector arrays under the hood), and maps (hash algo with bucketing system and constantly make data contiguous) to make code mechanically sympathetic
         * slice is the besttttttt for Go
 
-Arrays and Slices: 
+Arrays: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/arrays/example1/example1.go
+* an assignment operation is a write operation
+* for/ranges - always use these if iterating over the whole array, but there are 2 ways to do this (both value and pointer semantics)
+    * value semantic: `for i, fruit := range fruits {}` //becomes copy of string in the array
+    * pointer semantic: `for i := range fruits {}`
+* data types:
+    * strings (numerics, bools) are designed to fit value-semantics to move data around that program; if on heap, that is NOT productive
+    * fields/structs are user defined and should also be value-semantic based
+    * derived/reference types (arrays, pointers, slices) are all pointer semantic types
+    * exceptions: 
+        * Go has the concept of `nil` - zero-value for reference types
+        * Go does NOT have concept of `null` - absence of value
+        * how do you handle an absence of value in Go?
+            * you can use SQL types OR
+            * pointer-semantics - may have a pointer of type string in a struct to use specifically in a db
+
+Slices: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/slices
+* 
 
 
 
