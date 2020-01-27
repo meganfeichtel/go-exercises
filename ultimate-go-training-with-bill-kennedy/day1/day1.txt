@@ -1,7 +1,13 @@
 # Day 1: Basic Go Data Semantics
 
 How do we turn this piece of code into an engineering product?
-Lines of code is a good metric for a the success of a team.
+    * Lines of code is a good metric for a the success of a team.
+
+Go is NOT perfect:
+    * too many ways to declare variables (standards? JUST BE CONSISTENT! in Go, every byte gets set to zero-value)
+        * zero-value definition: `var count int`
+        * package-level variables: `var global string = "hello` //must have keyword if outside of definitions
+        * short variable declaration: `count := 10`
 
 https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
 * industry where performance became the highest priority and not the maintainability of the code we're writing
@@ -32,5 +38,27 @@ https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
     3. Simplicity: we must understand that simplicity is hard to design and complicated to build
         * how can we hide complexity without hiding readability?
     4. Performance: we must compute less to get the results we need
+        * performance does matter, but it should not ever outweigh readability 
+
+https://play.golang.org/p/9kxh18hd_BT  
+* mechanics vs semantics:
+    * mechanics are how things are implemented (change all the time)
+    * semantics are understanding the behaviors
+    * ex: go playground is 32-bit (vs 64-bit), so semantics will be the same but mechanics may change - single threaded env
+        * "int" will use the most efficient integer type for the architecture (instead of hardcoding int64, int16, etc)
+        * int and address pointers will all be the same size
+* all you need to know is one layer below where you are coding
+* Goroutine is an application level thread (co-routine) that gets attached to ever OS thread/processor in the computer
+    * The machine of the processor gets a stack and then the Gorountine also gets its own stack
+    * Go allocates a 2K byte stack (segmented) - paths of execution need to be as light-weight as possible so that many Goroutines can run
+    * Goroutine is locked in timeout in the stackframe (takes frame off stack), only memeory it can read-write is in that stackframe
+    * If we can isolate the mutations in small-amounts of memory, we can handle the problems easier
+    * data transformations (new function definitions) get called in separate stackframes & will operate on it's own copy of the data
+
+
+
+
+
+
 
 
