@@ -179,10 +179,15 @@ Slices: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/s
         3. find context package when to call cancel
         4. forgetting a close-method on an API - start commenting out code
         5. multiple collections being joined
-* we double capacity when we run out of space in a slice (under 1000 elements)
-* side effects: 
-    * side effects happen because all mutations are occuring with pointer semantics
-
+* Go will double capacity when we run out of space in a slice (under 1000 elements), or it will grow at 25% after that
+* side effects happen because all mutations are occuring with pointer semantics. some examples:
+    * reference parts of a slice: [a:b] //not including b, or [a:a+len]
+    * backing arrays: `slice2 := slice1[2:4]; slice2[0] = "CHANGED"`; if you mutate data in a slice that was derived from another slice, then you can alter BOTH slices with one mutation call
+        * even worse side effect: `slice2 := slice1[2:4]; slice2 = append(slice2, "CHANGED")` will STILL update behind the scenes in the append call
+        * fix: you can add a capacity call to the definition: `slice2 := slice1[2:4:4]` OR do a `copy(slice3, slice1)` just in case
+    * append can cause the backing array to be replaced but the parent pointer not pointing to the correct, new backing array
+        * any call to append _can_ replace the backing array
+        * we should instead include structs instead so when you update a user, you update the underlying structs
 
 
 

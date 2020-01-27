@@ -2,7 +2,7 @@
 package main
 
 // user represents a user in the system.
-type user struct {
+type user1 struct {
 	name  string
 	email string
 }
@@ -23,11 +23,11 @@ func escapeAnalysis() {
 // createUserV1 creates a user value and passed
 // a copy back to the caller.
 //go:noinline
-func createUserV1() user {
+func createUserV1() user1 {
 
 	//zero value construction: var u user
 
-	u := user{
+	u := user1{
 		name:  "Bill",
 		email: "bill@ardanlabs.com",
 	}
@@ -42,9 +42,9 @@ func createUserV1() user {
 // createUserV2 creates a user value and shares
 // the value with the caller.
 //go:noinline
-func createUserV2() *user {
+func createUserV2() *user1 {
 	//using pointer semantics
-	u := user{
+	u := user1{
 		name:  "Megan",
 		email: "megan@megan.com",
 	}

@@ -18,4 +18,10 @@ func main() {
 
 	println("\nSlices exercise 1:")
 	slices1()
+
+	println("\nSlices exercise 2:")
+	slices2()
+
+	println("\nSlices exercise 3:")
+	slices3()
 }
