@@ -15,6 +15,7 @@ Go is NOT perfect:
         * short variable declaration: `count := 10`
     * if you are using a value definition, always use value-semantic construction & leverage the & operator
         * if you are constructing on a return, you can use pointer-semantic construction
+    * if people write in tight-loops (i.e. no function calls), then scheduling/garbage collection can't run
 
 https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
 * industry where performance became the highest priority and not the maintainability of the code we're writing
@@ -91,15 +92,26 @@ https://play.golang.org/p/n9HijcdZ3pT
         * Go's garbage collector will kick off as soon as 4megs of memory is allocated across the field of heap memory
         * 3 phases of garbage collection:
             1. mark start - stop the world STW phase (no applcation work getting done - wants to keep this down to 100 microseconds or less)
-            2. Marking - continuous 
+            2. Marking - concurrent phase (down in CPU throughput but still running routines) 
             3. mark terminate - STW
         * ex: if you have 4-threaded Go program, you have 4 Processors with a Go Routine each (with other Go apps queued up)
             * 100% CPU = 4 Goroutines
             * write-barrier flag: allows concurrent access in the next phase to NOT cause any integrity issues while application work is getting done
-
-
-
-
+        * gcs are triggered during breaks in function calls - so no functions, no garbage collection
+        * for every 4 goroutines, there will be 1 dedicated to a GC (so 8 threads = 2 GCs) - preimptive GCing, but now we're down to 75% of cpu throughput
+        * Marking - concurrent phase:
+            * start at top of stack and work down to active frame, find pointers that point to the heap, and then mark everythign white; if we find root values, we turn it grey and put it in a queue; pull grey values out of queue, paint it black, and see if there is anything else it has (and repeat grey queueing process)
+            * now we have only black or white flags on all of our variables
+        * One single knob: GC percent, GOGC=100 (default) - stands for percentage - don't play with this knob! but we will tomorrow
+            * tells pacing algo when the next GC should start
+            * you can also set this to "off" - in which GC will not run
+                * good for benchmarking? small lambda functions/cron jobs that don't run very long
+                * don't want to shut this off for long-running services probably ever
+            * https://www.ardanlabs.com/blog/2018/12/garbage-collection-in-go-part1-semantics.html - Figure 12
+                * heap is growing while marking is going on, so GC doesn't want heap to grow more than an extra X-megs
+            * Mark-assist could take up another processor (down to 50% cpu throughput), so GC will kick of earlier than the GOGC percentage to try to limit that time that takes up the CPU
+        * Reduce GC? don't write that much to the heap - throughput will go up
+        
 
 
 
