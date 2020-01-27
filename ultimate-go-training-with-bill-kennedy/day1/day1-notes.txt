@@ -144,7 +144,7 @@ Arrays: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/a
 * data types:
     * strings (numerics, bools) are designed to fit value-semantics to move data around that program; if on heap, that is NOT productive
     * fields/structs are user defined and should also be value-semantic based
-    * derived/reference types (arrays, pointers, slices) are all pointer semantic types
+    * derived/reference types (arrays, pointers, slices, maps, channels, functions, interfaces) are all pointer semantic types
     * exceptions: 
         * Go has the concept of `nil` - zero-value for reference types
         * Go does NOT have concept of `null` - absence of value
@@ -153,7 +153,37 @@ Arrays: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/a
             * pointer-semantics - may have a pointer of type string in a struct to use specifically in a db
 
 Slices: https://github.com/ardanlabs/gotraining/tree/master/topics/go/language/slices
-* 
+* when working with slices, everyone gets their own copy of the slice (value semantics), but when reading/writing, we use pointer semantics
+* you should always pass copies of data structures, but can get away with using pointer semantics in map/slice if using decode/unmarshall
+* A slice is a descriptor of an array segment. It consists of:
+    1. a pointer to the array
+    2. the length of the segment
+    3. its capacity (the maximum length of the segment)
+* `var data []string` gives the zero-value of this slice (stores [nil, 0, 0] and returns "null"); `data := []string{}` does NOT give you zero-value, but instead an empty value
+    * collections are allowed to be empty (stores [*, 0, 0] and returns "[]")
+    * but there's an empty pointer? what does it point to? 
+        * Go has another special type, the empty struct - `var es struct{}` - zero-allocation type
+        * part of the Go runtime (global variable)
+        * all of these values will have the same address in memory with zero allocation of data
+* append built-in function: 
+    * `data = append(data, value)` - reference types use value semantics to move around the program
+    * takes in a copy of the slice and then returns the safely mutated copy of the data back to the original, that then gets mutated safely
+* memory leaks in Go:
+    * when there is a Goroutine holding a reference to a piece of memory in the heap and locking it in from getting it cleaned up even though it's not being used
+    * the value that might be overallocating is not the thing that might be leaking
+    * not possible to write a sustainable program to trace memory leaks in Go
+    * until GC tells you that you have a memory leak, we don't have one
+    * what to do if you do get a memory leak:
+        1. #1 cause - playing with concurrency and creating extra goroutines (and they don't terminate)
+        2. using a map as an inproc cache - at some point, you need to delete keys
+        3. find context package when to call cancel
+        4. forgetting a close-method on an API - start commenting out code
+        5. multiple collections being joined
+* we double capacity when we run out of space in a slice (under 1000 elements)
+* side effects: 
+    * side effects happen because all mutations are occuring with pointer semantics
+
+
 
 
 

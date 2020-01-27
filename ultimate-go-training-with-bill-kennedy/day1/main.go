@@ -15,4 +15,7 @@ func main() {
 
 	println("\nArrays exercise 2:")
 	arrays2()
+
+	println("\nSlices exercise 1:")
+	slices1()
 }
