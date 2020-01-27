@@ -1,0 +1,36 @@
+# Day 1: Basic Go Data Semantics
+
+How do we turn this piece of code into an engineering product?
+Lines of code is a good metric for a the success of a team.
+
+https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
+* industry where performance became the highest priority and not the maintainability of the code we're writing
+* "The software business is one of the few places we teach people to write before we teach them to read." - Tom Love (inventor of Objective C)
+* mental models: You must constantly make sure your mental model of your projects are clear. When you can't remember where a piece of logic is or you can't remember how something works, you are losing your mental model of the code. This is a clear indication that refactoring is a must. Focus time on structuring code that provides the best mental model possible and code review for this as well.
+    * https://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two
+* 2 foundational guidelines: 
+    1. do not make things easy to do, make them easy to understand
+    2. every encapsulation must define a new semantic/behavior where one is absolutely precise
+* productivity vs performance: the belief that the hardware can make slow code faster is wrong, need to have perofrmance be top priority
+    * hardware hasn't really changed in the last 2 decades
+    * how can you get latency to work for you?
+* correctness vs performance: optimizing the code for correctness, and then let tooling take care of performance?
+    * "Make it correct, make it clear, make it concise, make it fast. In that order." - Wes Dyer
+* code reviews: hese four major categories are the basis for code reviews and should be prioritized in this order: Integrity, Readability, Simplicity and then Performance.
+    1. Integrity: we need to become serious about reliability
+        * the software we write affects people's lives
+        * need accuracy, consistency, and efficiency
+        * micro (every integer is thought of when allocating/reading/writing memory) vs macro (data transformation problems) integrity
+        * write less code: it will have less bugs and be more correct (1 bug for every 20 lines of code)
+        * go is a data-oriented programming language
+        * error handling: 92% of failures could have been fixed by better error handling
+            * "Failure is expected, failure is not an odd case. Design systems that help you identify failure. Design systems that can recover from failure." - JBD
+    2. Readability: we must structure our systems to be more comprehensible 
+        * this word has a different definition for each programming language
+        * subjective: an avg. developer has a clear understanding of the code to be able to fix a production bug (above-avg developers have one job: to be a coach, not implement more difficult code)
+        * non-subjective: readable code does not hide the cost of the trade-offs we're taking
+    3. Simplicity: we must understand that simplicity is hard to design and complicated to build
+        * how can we hide complexity without hiding readability?
+    4. Performance: we must compute less to get the results we need
+
+
