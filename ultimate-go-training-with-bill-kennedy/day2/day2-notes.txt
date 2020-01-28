@@ -1,2 +1,38 @@
 # Day 2: Multi-Threaded Programming
 
+Don't write mutli-threaded software until you absolutely need to.
+* the only time you need to add this to your software is when a single-threaded solution isn't fast enough.
+* now you will have to balance the level of complexity for performance gain.
+
+Semantics of multi-threading:
+* what if we had to write our own OS scheduler?
+    * multiple paths of execution at the same time
+    * thread does the accounting and execution of the path
+    * would be nice to give illusion that things are happening in parallel, even if it's not
+    * threads will now have to have states: 
+        1. runnable - asking for time on the hardware
+        2. running - actually been placed on the hardware is executing
+        3. waiting - waiting for something, don't care about this
+    * Scheduler Period algo: any thread in a `runnable` state will get to run a share of scheduling period
+        * if there is 1 thread in `runnable`, it gets full scheduling period (1000 ms)
+        * if there are 2, then we split the scheduling time in half and the 2 share (each get 500ms)
+        * if there are 10, then we continue to split (100ms each, but won't get as much work done)
+        * if user keeps sending more threads, we still give the threads time to run but now we lose time per thread
+        * it's also _not free_ to put/take thread from hardware - CONTEXT SWITCHING
+            * in linux, it costs 1-2microsecs/12k instructions
+            * when we get to 1000+ threads, we start losing time on the processing
+    * Minimal Time Slice algo: no matter how many threads I have to schedule, I will not allow a thread to run less than Xms at a time
+        * if the scheduler will cause this threshold to hit, extend the scheduling time
+        * you will see work/requests being starved because they have to wait that whole scheduling time to be able to run
+* 2 types of workloads:
+    1. cpu bound
+        * instructions set being executed will never cause the thread to go to a waiting state
+        * adding ints, fibonacci
+        * each thread will use its full time slice every time
+    2. io/blocking bound
+        * can go to a waiting state
+        * go and fetch the data from a url - network call is waiting state
+* OS threads are preemptive schedulers with a flag of priority on every thread/event
+    * the scheduler must make a hardware thread available for high priority events (like typing or mouse touch)
+    * that's why some events, regardless of workload type, will be put in waiting
+* you are also responsible for: syncronization and orchestration

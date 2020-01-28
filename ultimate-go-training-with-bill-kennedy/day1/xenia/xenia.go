@@ -23,10 +23,12 @@ type Data struct {
 	Line string
 }
 
+//Puller comment
 type Puller interface {
 	Pull(d *Data) error
 }
 
+//Storer comment
 type Storer interface {
 	Store(d *Data) error
 }
