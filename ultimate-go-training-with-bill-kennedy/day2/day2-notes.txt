@@ -26,9 +26,10 @@ Semantics of multi-threading:
         * you will see work/requests being starved because they have to wait that whole scheduling time to be able to run
 * 2 types of workloads:
     1. cpu bound
-        * instructions set being executed will never cause the thread to go to a waiting state
+        * instructions set being executed will never naturally cause the thread to go to a waiting state
         * adding ints, fibonacci
         * each thread will use its full time slice every time
+        * most efficient workloads to do and reason about concurrency
     2. io/blocking bound
         * can go to a waiting state
         * go and fetch the data from a url - network call is waiting state
@@ -36,3 +37,70 @@ Semantics of multi-threading:
     * the scheduler must make a hardware thread available for high priority events (like typing or mouse touch)
     * that's why some events, regardless of workload type, will be put in waiting
 * you are also responsible for: syncronization and orchestration
+
+Parallelism vs concurrency:
+* use both of these to get better performance with the hardware
+* parallelism: you can phsycially execute multiple paths at the same time
+* concurrency: undefined, out-of-oreder execution (not random)
+    * go specs do not define iteration order of a map - no definition of the order
+* sometimes these 2 concepts need each other and sometimes they don't
+    * ex: if we want to add up a list of ints, the single threaded algo will work better than one that sliced up the list into 4 parts and has 4 threads, because of the context SWITCHING
+        * BUT if we add 4 more hardware threads, then the splitting algo will be faster because they can all work independently
+        * cpu-bound workloads will run faster with concurrency if they have access to multiple threads
+        * calculate: how many threads can you run in parallel?
+        * but write the sequential algo first and then ask these questions
+        * ex: can't sequentially solve bubble sort! because it needs a defined order
+    * ex: io bound workload (containing urls), the 4-threaded algo will be faster because the urls will be idle for a time, and thus the context switching is working in our favor
+        * how many threads to maximize performance? we don't know this!
+        * answer-ish: magic number of how many threads to where only 1 is in a runnable state at any given time - impossible to find this
+        * this is why thread-pool tech exists
+    * 3 threads per hardware thread was always bill's magic number for solving 100k 
+* when running multi-threaded software, you have to take advantage of the hardware that is there and scale accordingly
+    * BUT there is always a breaking point, where even if we scale it, it will not be able to be able to handle the load
+    * thread pool variables for IOCP: min threads per pool (1000), max threads per pool (2000), and concurrency value (0)
+        * concurrency: as work gets added to the pool, don't add more threads to the pool than can be run in parallel
+        * so now we have 2 active threads at any given time, but if using io bound workloads, then a lot of those loads are getting put in waiting and thus you could have thosands of threads but only 2 active at any given time
+        * microsoft adjusts the concurrency number as the load runs, so that when it finds the number, it can run the pool as efficient as possible
+
+Multi-threading in Go:
+* go tries to eliminate the need for pooling as it comes to performance
+    * pooling in Go should only be used for minimizing resources (funnelling resources)
+* Go will only use MT when in a safe point (guarantee that no reading/writing to memory is taking place)
+* When a Go program starts up, it will look for a map of how many threads the machine has to work with - then sets up the Goroutine on the Processor to Machine connection
+    * GRQ - go's stack vs. LRQ the stack of the processor
+    * minimum time slice for Goroutine is 10ms
+* 4 classes of events to give scheduler opportunities to give context switches:
+    1. keyword `go` - schedule the function to run concurrently, undefined
+    2. garbage collection - huge chaos in scheduler
+    3. system calls - cause Goroutine to move to waiting state
+        * asynchronous: 
+            * network calls (like a network call to `read`)
+                * network polar - runs as a threadpool, starts as single threaded os pool, the only async calls are the network calls
+                * it will attach the goroutine to the NP and let that handle the networking stuff
+                * then a new Goroutine will start on the processor/machine, until the original goroutine is done and can come back and reattach
+                * the state doesn't stay with you, it moves to the new place or is managed somewhere else
+        * synchronous: 
+            * from our programming model, the networking call is a synchronous call 
+                * Go has turned async networking calls to sync calls, we get the benefits of async calls with the maintenance of state
+                * Go handles that state management for you, which is mangnitudes simpler
+            * for file reads, we Go uses sync calls, too, because we're reading from a file
+                * we detach the goroutine and the machine and move that goroutine into the waiting state, then they will bring another machine/goroutine in and unblock the machine's queue
+                * thread local storage - there is no guarantee that you will be on the same thread at the same time, so can't use this (unlike in c)
+        * you can have up to 10,000 threads in 1-threaded go program before things start to go haywire
+    4. Blocking calls - c libraries, syncronization, orchestration
+        * system monitor runs with the scheduler:
+            * ids that a goroutine hasn't implemented in under 20ns, and recoginzes that the goroutine has stalled (blocking the machine)
+            * it will then kick off the same process as the syncronous call
+* scheduler is a work stealing scheduler - when we are in parallel, we don't want machines to be in `waiting` and thus could try to steal work from other processors
+    * there is also a limit for how many goroutines can be in the go run queue
+* go has been able to turn io bound workloads at system level into cpu bound workloads at the operating system level because the Machines never go into a waiting state, even if the goroutines are switching contexts
+    * then we can just through paths of execution at the problem, and everything will handle the efficiency for you
+    * making pools irrelevant except for resource reduction
+
+
+
+
+
+
+
+
