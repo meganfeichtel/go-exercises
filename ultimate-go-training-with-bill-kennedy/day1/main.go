@@ -37,4 +37,7 @@ func main() {
 	println("\nInterfaces exercise 4:")
 	interfaces4()
 
+	println("\nEmbedding exercise 1:")
+	embedding1()
+
 }

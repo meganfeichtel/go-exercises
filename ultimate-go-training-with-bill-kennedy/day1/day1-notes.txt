@@ -22,6 +22,15 @@ Go is NOT perfect:
         * if you are constructing on a return, you can use pointer-semantic construction
     * if people write in tight-loops (i.e. no function calls), then scheduling/garbage collection can't run
 
+What "done" is for Bill?
+* on first iteration of code to go to prod, it is built in the concrete
+* it works/runs
+* 70% code coverage on the tests
+* what changes do you think are coming to this program? what data could we see changing? 
+    * then: do we want to decouple this code now or when the change comes? Level 2 done
+
+~~~
+
 Intro: https://github.com/ardanlabs/gotraining/blob/master/topics/go/README.md
 * industry where performance became the highest priority and not the maintainability of the code we're writing
 * "The software business is one of the few places we teach people to write before we teach them to read." - Tom Love (inventor of Objective C)
@@ -262,3 +271,47 @@ Interfaces: https://github.com/ardanlabs/gotraining/blob/master/topics/go/langua
     * the empty interface tells you nothingggggg - just good for runtime (un)marshalling
     * generics are coming in Go (compile-time polymorphism) - don't try to use this for generics
 
+
+Embedding: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/embedding/README.md
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/embedding/example1/example1.go && https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/embedding/example2/example2.go
+    * all we're doing is defining a concrete type of `admin` that calls another concrete type `user`, and we construct within a construct on line 33-9
+    * inner-type promotion: anything related to the inner type (user) can be promoted up to the outer type (admin)
+    * we should use this to promote behaviour, NOT state
+    * we can use `notify` on BOTH the inner and the outer types
+    * BUT you cannot pass admin values around like they are users (NOT inheritance!)
+    * it's the promotion of behavior that becomes important
+    * things _can_ promote, not will promote - things that are ambiguous may not be promoted
+* hallmark example in `embedding.go`
+    * who knew that anyone needed to pass in a new alias?
+    * you can't use a method-based API if it is unclear what that message needs to be
+        * you will never know what needs to be initialized in user for sendEmail
+    * the build SHOULD break when things change
+        * but if you need backwards compatibility, then create a new function with the new version of the code
+        * since we're not working in open source, why would we put more burden on people to maintain to versions of code? 
+        * encapsulation with new semantics are more precise - soe much easier for prod, testing, code maintainability
+    * once something is working, then we need to ask ourselves if these APIs can be tightened/refactored/more precise?
+
+Struct composition: Xenia example - https://github.com/ardanlabs/gotraining/blob/master/topics/go/design/composition/decoupling/example1/example1.go
+* write code in layers:
+    1. primative layer - building blocks for everything we do
+    2. lower level layer - concrete APIs and interactions of the service
+    3. higher level layer - management layers, this is where efficiencies mostly come into play
+    * a lot of problems occur when we have functions that cross all the layers
+* Primative layers in example - `Pull` passes the data down the stack, not up, to get from the database; Store w/ Pillar for now to put data into the db
+    * these functions only care about behavior of the APIs NOT what's in the receiver
+* LL layer - System wraps these primative functions together into one interaction
+    * create a function called `pull` that can iterate off of a collection of interactions
+    * if the primative API works, then a bulk of this code will work too, but unifies the codebase
+    * to keep everything symetrical, we also now create a `store`
+* Higher level API: bring pull and store together, `Copy`, so now we can use the System interaction, which as Zenia, Pillar, and their behaviors
+* if we need to add new data types (not just Xenia), we need to look at where changes would be
+    * good to start with the LL layer and turn them into polymorphic functions
+    * we then need to also abstract System, interface types are valueless, so we can't pass around `ps`, but we can pass around the concrete data inside of it
+        * therefore, we must be passing around the concrete definitions of Puller (Xenia) and Storer (Pillar)
+        * layers of indirection because under the hood, we're passing in System (not `ps`)
+        * we won't even feel this allocation on the stack because it's a simple copy allocation
+* what if we want to use Bob and Alice, instead of Xenia and Pillar?
+    * should we build another "System"? no, probably not
+    * can't System just be the composition of Puller/Storer? 
+* now we can get rid of PullStorer because we can use System instead since it does the decoupling!
+* now `Copy` shouldn't have to inject data, instead it can call the APIs to be more precise (and get rid of System)
