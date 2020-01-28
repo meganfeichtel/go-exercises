@@ -117,3 +117,53 @@ func interfaces3() {
 	// ERROR ./example3.go:18: cannot call pointer method on duration(42)
 	// ./example3.go:18: cannot take the address of duration(42)
 }
+
+type printer interface {
+	print()
+}
+
+// print displays the user's name.
+func (u user3) print() {
+	fmt.Printf("User Name: %s\n", u.name)
+}
+
+func interfaces4() {
+
+	// Create values of type user and admin.
+	u := user3{"Bill", "email"}
+
+	// Add the values and pointers to the slice of
+	// printer interface values.
+	entities := []printer{
+
+		// Store a copy of the user value in the interface value.
+		u,
+
+		// Store a copy of the address of the user value in the interface value.
+		&u,
+	}
+
+	// Change the name field on the user value.
+	u.name = "Bill_CHG"
+
+	// Iterate over the slice of entities and call
+	// print against the copied interface value.
+	for _, e := range entities {
+		e.print()
+	}
+
+	for _, e := range entities {
+		u, ok := e.(user3)
+		fmt.Printf("User Name2: %s\n", u.name)
+		fmt.Printf("OK?: %v\n", ok)
+		//this code is going to panic
+	}
+
+	// When we store a value, the interface value has its own
+	// copy of the value. Changes to the original value will
+	// not be seen.
+
+	// When we store a pointer, the interface value has its own
+	// copy of the address. Changes to the original value will
+	// be seen.
+}

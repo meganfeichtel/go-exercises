@@ -251,7 +251,14 @@ Interfaces: https://github.com/ardanlabs/gotraining/blob/master/topics/go/langua
         2. major: 
             * if you are choosing pointer semantics, the only thing you're allowed to do is share, you're never allowed to make a copy to a value
             * it is reasonable to switch from value to pointer semantics, but if you're coming from pointers, you can't have copies stored in the interface
-
-
-
+            * https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/example4/example4.go
+                * line 32 - constructing a collection of data based on what that data can do (NOT what it is)
+                * types maintain a strong presence in Go
+                * a collection of data of _any_ concrete type that knows how to print
+                * now all of this is stored in the stack
+* type assertion: you may want to have code that operates on the concrete data
+    * `u, ok := e.(user3)`
+    * doing conditional logic on the type of the value being stored: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/example7/example7.go 
+    * the empty interface tells you nothingggggg - just good for runtime (un)marshalling
+    * generics are coming in Go (compile-time polymorphism) - don't try to use this for generics
 

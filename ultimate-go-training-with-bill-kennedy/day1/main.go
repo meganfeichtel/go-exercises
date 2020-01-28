@@ -33,4 +33,8 @@ func main() {
 
 	println("\nInterfaces exercise 1:")
 	interfaces1()
+
+	println("\nInterfaces exercise 4:")
+	interfaces4()
+
 }
