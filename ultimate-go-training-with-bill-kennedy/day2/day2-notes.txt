@@ -97,10 +97,18 @@ Multi-threading in Go:
     * then we can just through paths of execution at the problem, and everything will handle the efficiency for you
     * making pools irrelevant except for resource reduction
 
+https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/goroutines/example1/example1.go
+* you left main return, the program runs, so you need to manage your concurrency to make sure functions are done before the main function exists
+* wait group will help with this - maintain a count of goroutines that are active - has an API of add/done/wait
+    * can't make a copy of a wait group (always value semantics), must share state of that wait group
+    * if you don't know how many goroutines you are going to create before you create them, we have a problem
+    * if you want to stay out of trouble, keep the `add` and the `done` calls in the same sight, you are to do that
+    * keep the `done` call out of the function that youre calling in the goroutine 
+    * while the wait group is not 0, the main call will be blocked if you call the `wait` function - this is our GUARANTEE that all work from the child calls will be done
+* there always has to be a guarantee for concurrency, or you are not handling it
+* for tests, use `runtime.Gosched()` - this is NOT a guarantee, but it is good for tests
 
-
-
-
-
+https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/goroutines/example2/example2.go
+* 
 
 
