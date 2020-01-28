@@ -1,0 +1,35 @@
+The Ultimate Go training has been designed over the past 4 years and goes beyond just being a Go language class. There will be very little time spent on specific Go syntax. Our time will be spent learning how to read and understand Go code with a big focus of “if performance matters” then these things matter.
+
+Course Outline
+
+Day 1: Language Mechanics / Semantics - We will talk about code design, semantics, guidelines, mechanical sympathy, and data-oriented design.
+
+    Pointers
+    Data Semantics
+    Control Flow Design
+    Decoupling Mechanics
+    Compositional Design
+
+Day 2: Multi-Threaded Programming -We will focus on concurrency and tooling.
+
+    Concurrency
+    Profiling / Tracing
+
+Day 3: Build Web Service -We will re-engineer a web service and talk about application design, semantics, and guidelines for building services in Go.
+
+    Start/Stop
+    Logging/Configuration
+    Web Framework Design
+    Database Support
+    Testing Support with Docker
+    Metrics/Tracing
+
+ 
+
+What A Student Can Expect To Learn
+
+Everyone is going to be mentally exhausted by the end of the day. We will be challenging every student to think about what they are doing and why. In the 4 years, we have taught this material, we have never had someone not appreciate the class and feel like they are a better developer for it. If you want to be a better Go developer, code reviewer, designer and architect, this is the class you want to take.
+
+Minimal Qualifications
+
+A basic understanding of the Go programming language. Students do not have to be expert Go users but they will get the most from the class if they have completed the majority of the Go Tour (https://tour.golang.org).

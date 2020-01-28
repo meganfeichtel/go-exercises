@@ -30,4 +30,7 @@ func main() {
 
 	println("\nMethods exercise 2:")
 	methods2()
+
+	println("\nInterfaces exercise 1:")
+	interfaces1()
 }

@@ -224,4 +224,34 @@ Decoupling: https://github.com/ardanlabs/gotraining/tree/master/topics/courses/g
         * f1 will also get a copy of the data -> "Bill" but that has to live on the heap
     * flaws in escape analysis: double indirection since we have a pointer pointing to a pointer just sends that second pointer's information to the heap
 
-Polymorphism: a piece of code changes its behavior depending on the concrete data it is operating on
+**Polymorphism**: a piece of code changes its behavior depending on the concrete data it is operating on
+Interfaces: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/README.md 
+* interface types are valueless types, and structs are concrete types
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/example1/example1.go 
+    * the concrete type `file` can implement the interface type `reader` using value semantics (same with pipe)
+    * `retrieve` function cannot ask for a reader, because readers don't have values/interface, but it will accept any concrete data that exhibits the full behavior of reader
+    * at a package level, we get to decide as the API designer to accept data based on the concrete type (what it is) or the valueless type (what its behaviour is)
+    * line 53 is polymorphism because it can `read` based on what concrete type is being passed into it
+    * the "reader" will have 2 storage points: [
+        1. a pointer to an i-table (like a v-table, a matrix of functions)
+            * for this example: [a file/pipe, a pointer to the concrete implementation of read]
+        2. a pointer to a copy of a concrete type (file or pipe)
+      ]
+    * when you store concrete values of an interface, that value has to live on the heap (which is the trade-off)
+    * now, if the data changes, the code can adapt
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/example2/example2.go
+    * method set rules: this value type `user` does not exhibit the behiors of the polymorphic function/interface `notifier`
+        * if the concrete data you are working with is a value of some type, only methods defined by value semantics work for that type
+        * if you work with the pointer, then all methods defined for that type are attached to the pointer
+    * Go will not allow us to have integrity issues in the software - trying to prevent:
+        1. minor: https://github.com/ardanlabs/gotraining/blob/master/topics/go/language/interfaces/example3/example3.go
+            * not all concrete data we work with is address-able, which means it can't be shared, which means we can't use pointer semantics
+                * integrity is all or nothing
+            * constants do not have values at compile time
+        2. major: 
+            * if you are choosing pointer semantics, the only thing you're allowed to do is share, you're never allowed to make a copy to a value
+            * it is reasonable to switch from value to pointer semantics, but if you're coming from pointers, you can't have copies stored in the interface
+
+
+
+
