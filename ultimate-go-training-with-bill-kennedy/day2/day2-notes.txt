@@ -147,8 +147,81 @@ Synchronization:
         * if there is a write, the scheduler won't dole out any more read locks, wait for the reads to finish, do the write, and unlock everything to start again with the read locks
         * NOTE: if your code is not behaving using a read/write mutex, then you have probably switched the RLocks/Locks/RUnlocks/Unlocks
             * you will probably see some deadlocks or data corruption if this is happening
+* monitoring: 
+    * put in metrics for locks/mutexes so that you can monitor backpressure
 
-
-
+Signalling:
+* Channels: https://github.com/ardanlabs/gotraining/tree/master/topics/go/concurrency/channels 
+    * a channel is NOT a queue - it is NOT a data structure
+    * it provides 1 semantic - allows a Goroutine to signal another goroutine with/without data about an event
+    * if signalling doesn't make sense, you shouldn't be using channels - we need to make sure the latency is working for us, not against us
+* Semantics for signalling: 
+    * does the goroutine that is sending the signal need a guarantee that the signal has been received? 
+        * if the received call happens before the send to be able to get the Guarantee
+            * the cost at the signalling level is unknown latency because don't know when we're going to get that signal call back
+            * but we need to make the unknown latency work for you - bring other work to be able to be most efficient
+        * if the send call happens before the received call (without guarantee)
+            * the send signaller doesn't have a latency cost
+            * but now there is still a cost - because we don't have a guarnatee that the work is getting done
+            * if there is a problem upstream, then the service would have no idea and would keep trying to give work
+            * what should have happened? if already given one signal, don't add anymore risk if the first signal wasn't taken yet
+    * 2 Modes of signalling: with or without data (cancellations/shutdowns - could be 1:1 or 1:many)
+    * 3 States of signalling:
+        1. zero-value state or nil channels: zero sends or received, completely blocked
+            * using these channels for event signalling, short term stopages or rate-limiting
+        2. open channels: built-in function `make` to "open" a channel 
+            * buffers are not unbounded, so if buffers are full the sending blocks
+        3. closed channels: cannot close a channel a second time, can't send either or panic
+            * you can receive on a closed channel
+* when it comes to signalling, there are a few patterns to be aware of
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/channels/example1/example1.go 
+    * Foundational patterns:
+        1. waitForResult:
+            * the sender waits for the result of the receiver
+            * never use time.Sleep for latencies or waiting things
+            * don't use func to output order, there is not guarantee of this order because they are running in nanoseconds
+        2. fanout: 
+            * the sender sends out work to multiple receivers and then wait till all of those workers are done - no guarantee per each receiver handoff
+            * line 68 - creating 2000 goroutines and don't care when those execute - the ORDER CANNOT matter
+            * very little receive latency because there there will probably always be work, but there will be high sender latency because more than one goroutine will probably finish their work at the same time but only one can send back the signal
+            * the latency is not working against us because there is only 1 goroutine on the other end anyway
+            * the guarantee is OUTSIDE of the signal itself, BUT there is still a guarantee
+            * fanouts are very dangerous patterns!
+                * they aren't going to scale unless the goroutine is fast enough to accomplish the requests as they scale
+                * massive loads on machines and on the systems that you are hitting - bad for web services (gotta think of the multiplier)
+                * really great for cli tools/lambda functions
+        3. waitForTask:
+            * has a goroutine that doesn't know what it is supposed to do - foundational pattern for pooling
+            * biggest mistake is using buffer channels with a pool
+                * you MUST get a guarantee, or you won't be able to write code to timeout
+                * once you put data in a buffer, it's lost
+        4. Pooling: higher level pooling pattern
+            * create a pool of goroutines - use for resource management
+            * use runtime.NumCPU - number of goroutines you can run in parallel - use this number to start pooling
+            * you can range over a channel to be able to see if the things has been received
+        5. boundedWorkPooling: 
+            * sometimes you have a fixed amount of work you want to get done, and don't want to throw a million goroutines at it
+            * let's create a pool of goroutines to be able to do that work and limit how much work is done concurrently
+                * ex: so we can stay within resource limits for file handling purposes? 
+            * once we've hit the bound, we block new work until another one opens up - but we're always staging work so the latency is working for us
+            * we close the channel with data inside of it, but it will be flushed first before we close the channel - toe goroutines will receive the close signal, and each one will terminate
+        6. drop: 
+            * handles unbounded amounts of requests to be able to set a capacity on how much we want to handle
+            * if we hit our capacity, then we will start blocking further requests and drop them to the floor
+            * could be 1 or a pool of goroutines to process requests
+            * like 233 uses a select statement to use multiple channels at the same time and block on all of them (select statements are blocking by nature, but the `default` helps with that to just drop the request - line 236-7)
+                * that way we don't take the blocking latency
+        7. cancellation: 
+            * no operation is allowed to take forever because backpressure will happen
+            * several functions: withTimeout/withDeadline/withCancel
+                * context package uses value-semantics to not disrupt value calls to any of the references above the leaf one
+                * and Background() function creates a zero-value one
+            * any context function that returns a cancel function MUST have a `defer cancel()` - cancel can be called multiple times
+                * or else there will be a memory leak
+            * there is also a blocking select (no default) - line 268
+                * line 270 - send signal and the work was complete
+                * line 273 - work wasn't done in time, but send the done anyway and walk away
+            * you need a buffer of at least 1 to let the send happen regardless of if the receiver was done
+    
 
 
