@@ -107,8 +107,48 @@ https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/gorout
     * while the wait group is not 0, the main call will be blocked if you call the `wait` function - this is our GUARANTEE that all work from the child calls will be done
 * there always has to be a guarantee for concurrency, or you are not handling it
 * for tests, use `runtime.Gosched()` - this is NOT a guarantee, but it is good for tests
-
 https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/goroutines/example2/example2.go
-* 
+https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/goroutines/example3/example3.go
+
+Data Races - condition in concurrency: 
+* these always look random and are the worst bugs because they don't always show up
+* https://youtu.be/WDIkqP4JbkE?t=1809 
+    * what if you forget to use a mutex or an atomic instruction? results can be undefined, extremely difficult to know what the hardware is going to do so it doesn't know
+    * if sync access to share data, then you need something to prevent individual threads to access to the same data at the same time - everything else will be taken care of
+    * this is NOT free - has to execute instructions to make sure you see a coherent picture of memory  - you will take a performance hit
+    * false sharing - what occurs when you have access patterns to memory that fall near one another on the same cache line but they don't conflict
+        * this is BAD because scalability and performance will be affected 
+        * the hardware uses value semantics - every core gets its own set of data to operate on
+        * with small machines and small data sets, you won't see this; but you will notice with big data because you're not being sympathetic with the hardware
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/concurrency/data_race/example1/example1.go
+    * we find the code we need to change and we rip out all the logging except for one log
+    * because of that log and because we weren't handling the concurrecny, we hit the print statement and it has caused a context switch
+        * they aren't running atomically anymore, and we're giving the code a chance to context switch
+        * go does have a race detector! 
+
+Synchronization: 
+* atomics, mutexes, read/write mutexes
+    * atomics:
+        * Atomic operations are more primitive than other synchronization techniques - lockless and generally implemented directly at hardware level
+            * are often used in implementing other synchronization techniques
+    * mutexs:
+        * when you copy a mutex, it is a new mutex!
+        * never put lock and unlock in different functions, should always be the same function
+        * don't log in the mutex, get in and out as fast as possible because it blocks just about everything else!
+        * if you see a function using a mutex, and there are multiple calls to lock, then that is a SMELL!
+            * worse, the race tests won't even pick that up so it's really bad
+        * if you want to protect the entire function, then you could have: `mu.Lock(); defer mu.Unlock()`
+            * this will cause the entire function to take the thread
+            * the latency cost is the execution of the entire function - where backpressure could happening
+    * read/write mutex:
+        * should only be used when you have a lot of reads, with occassional writes
+            * ex: maps as caches
+        * `mu.RLock()` - I promise I will just read, and the scheduler gives out a lot of these
+        * if there is a write, the scheduler won't dole out any more read locks, wait for the reads to finish, do the write, and unlock everything to start again with the read locks
+        * NOTE: if your code is not behaving using a read/write mutex, then you have probably switched the RLocks/Locks/RUnlocks/Unlocks
+            * you will probably see some deadlocks or data corruption if this is happening
+
+
+
 
 
