@@ -162,6 +162,7 @@ Dependencies:
 * You _can_ always go direct, stand up your own module mirror (athens is open source), set env variables (GONOPROXY) to turn that lookup off in Google's proxy
 * go.sum file: 
     * the checksum db that gives a layer of durability of detection - it will generate hash codes and double check that the code hasn't changed
+* `go mod tidy` - cleans imports for you, keeps go.mod file clean, esp when you've been playing with imports
 
 Global variable rules:
 * order of initialization of variable doesn't matter
@@ -179,3 +180,16 @@ Checking the service start up/shut down:
 * start service up, and shut it down
 * start it up, run some load, and then make sure it shuts down (or you have a data race)
 * start it up, send some load, shut it down while there is still load, and make sure it shuts down without timing out (or you have a data race)
+
+Routers: 
+* packages shouldn't contain things _but_ routes.go will be one of the exceptions, since it will only be used by one package
+* violating own rule: no function should return decoupled data, but the routes.go func is an interface type
+    * but we're not responsible for doing this decoupling
+
+APIs:
+* every function should be able to succeed without errors with nothing in the context (that isn't absolutely required)
+
+Middleware:
+* want to write out a log for every request made to the API
+* setting business policy to the web frameworks without breakin the rules of setting policy in foundational code
+* `mw ...Middleware` means that the parameter is optional - only do this when it is 1:many relationship
