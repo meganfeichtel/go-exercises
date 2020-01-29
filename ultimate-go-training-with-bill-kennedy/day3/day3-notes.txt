@@ -1,4 +1,4 @@
-# Day 3: Building Web Services
+# Day 3: Building Web Services and Macrodevelopment
 
 
 Tooling: 
@@ -52,6 +52,69 @@ Tracing:
 
 MemCPU: https://github.com/ardanlabs/gotraining/blob/master/topics/go/profiling/memcpu/stream.go 
 * search the entire internet for "elvis" and capitalize the E
+* gotip test -bench . -benchtime 3s -benchmem -memprofile m.out //the memprofile will give us a memory profile that we can use `pprof` to evaluate
+    * this test also leaves a test binary - `gotip tool pprof [stream.test - only if you want binary instructions] m.out`
+        * Type: alloc_space (other is live heap space)
+    * `gotip tool pprof -noinlines m.out`: compiler optimizations
+        * output will now matche the weblist default data (shows compiler optimizations) instead of the list default data (doesn't have compiler optimizations on)
+        * `list algOne`:
+            * line 83 and 89 are flat allocations - these two rows are causing this
+    * to know why, we need to look at the compiler - ecape analysis report   
+        * gotip test -bench . -benchtime 3s -benchmem -memprofile m.out --gcflags -m=2
+        * line 83 (NewBuffer) now shows up in that compiler report: 
+            * compiler says let's not make function call but instead take code out of function, inline it directly, and forget the function call
+            * making a function call in go is very expensive - lots of things happen, stack grows, context switches, memory copying, etc.
+            * if clockcycles mattered, you would write all code in one function - but the compiler is here to help us optimize this without having to call a function under the hood
+            * also NewBuffer is using pointer semantics - heap allocation - if call gets inlined and there's no function call there is NOT an allocation
+
+Scavenger: run in the background and release memory back to the os/program
+    * originally it wasn't very aggressive (memory outages), so they rewrote it and now it's super aggressive
+    * this is bad for GC trace output because it takes over the screen, so run: `GODEBUG=gctrace=1 ./project 2> >(grep -v 'scvg') > /dev/null`
+* Debugging tool: https://github.com/ardanlabs/gotraining/tree/master/topics/go/profiling/project 
+    * localhost:5000/debug/pprof/
+    * gotip took pprof http://localhost:5000/debug/pprof//allocs will download that profile to the local
+    * `top 40 -cum` -> gives cumulative allocation for top 4 functions
+
+Other tools/frameworks? 
+* bgo - lots of apps in china use this
+* buffalo.io - the rails for go, good for web apps
+
+Application design: https://github.com/ardanlabs/service 
+* going to be making our own edits: https://github.com/meganfeichtel/service 
+* starter kit for go dev projects - clone and run 
+* writing a webservice (crud-based)
+* every decision at a macro-level should be to handle bugs in production
+* Go says: 
+    * the source tree that you are putting together, you are no longer building a monolithic app where folders are used to utilize source code
+    * you are building a static set of apis that come together to form an applications
+    * every folder in the source tree that actually represents a static codebase - this package of code acts as a firewall (microservices)
+    * every time we add a folder, what is this package/API's purpose? 
+    * if there are packages called utils, common, package of types, etc - because that point of dependency is going to cause the project to not be able to grow
+    * you want DISTINCT, CONCRETE, PYSHICAL apis
+* Type system: 1 purpose - allow data to flow in and out of an API
+    1. to flow in - based on what it is (concrete) or what it does (interface)
+    2. to flow out - always returns the concrete data (does not pre-decouple data for the caller)
+        * return type should not be an interface, the caller can do that for themselves
+        * exception is error handling
+* Less packages are more: start with larger packages and then discover where it could be broken down for simplicity/need
+    * all developers at Go work out of 1 repo - why there is one GOPATH - now because of modules, we're not actualy bound to this anymore
+    * it's also very opinionated _except_ about project structures 
+        * make sure package you add on Monday, you would make the same exact decision of where to put it on Friday - or else very difficult to maintain a mental model
+        * project structure has 3 parts:
+            1. application layer packages - start up, shut down, request/response, maybe some containment
+                * also policies (like logging)
+            2. business layer - talking to dbs, biz rules
+            3. foundational packages - marshalling
+                * can't and shouldn't be logging
+* for every project you are working on, bind it to a single repo (not 1 binary)
+    * when we talk about microservices, they're solving productivity issues, so only break things up if velocity is slowing
+    * hierarchy should serve one purpose: to make it easier to maintain an mental model of the code
+    * 2 folders: 
+        1. cmd/ - have other folders, one for each binary we're building, application layer packages
+        2. internal/ - business layer packages, shouldn't have packages inside of packages
+
+
+
 
 
 
