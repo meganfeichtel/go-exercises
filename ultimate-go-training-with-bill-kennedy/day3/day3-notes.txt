@@ -154,11 +154,23 @@ Configuration:
     * the operator trying to install and run your service should be able to type `--help` to see all config options, their defaults, and how they overwrite them (including the flags)
     * you can also see all the configs in main.go
 
+Dependencies:
+* MVS: doesn't always select latest and greatest - ALWAYS latest, but not necessarily the greatest
+    * preiously used SAT solvers - latest, greatest version of a dependency compatible with the project
+* Go looks at the module mirror in Google for a proxy server, and that server could return that version of the library
+    * if it doesn't have that version of that repo, it will clone the repo down from direct (github), captures it, and creates a zip file of that version number
+* You _can_ always go direct, stand up your own module mirror (athens is open source), set env variables (GONOPROXY) to turn that lookup off in Google's proxy
+* go.sum file: 
+    * the checksum db that gives a layer of durability of detection - it will generate hash codes and double check that the code hasn't changed
 
+Global variable rules:
+* order of initialization of variable doesn't matter
+* it doesn't depend on a configuration change
+* only source code file that touches the variable is the one it is declared in
 
-
-
-
-
-
-
+Monitoring/debugging:
+* "// Start Debug Service" section - the goroutine in the background that binds the debugger to the host port
+* exvarmon is a tool that takes the debug server and is able to wrap it with a service
+* Gorillamux - most common service; but Bill is going to be using the HTTP Tree router
+* didn't give a clean shutdown to the goroutine, but when it comes to the production restapi, can't just do a kill9
+    * need load shedding - shut down and wait a certain amount of time for the requests to finish without accepting any more
