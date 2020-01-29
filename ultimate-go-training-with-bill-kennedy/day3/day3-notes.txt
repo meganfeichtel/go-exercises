@@ -111,7 +111,51 @@ Application design: https://github.com/ardanlabs/service
     * hierarchy should serve one purpose: to make it easier to maintain an mental model of the code
     * 2 folders: 
         1. cmd/ - have other folders, one for each binary we're building, application layer packages
+            1. add an `internal/` to these: compiler gives another layer of protection because it is the only project that can access these packages
         2. internal/ - business layer packages, shouldn't have packages inside of packages
+            1. platform - anything that is business that isn't applicational
+    * we can also find bad imports with this model - imports can go down but never up!
+* create a kit repo/project at the company level - team's standard library
+    * all the foundational packages should live there and be used as a 3rd party dependency
+    * these have the highest level reusability, thus they need to be careful about policies being set
+
+Modules:
+* GOPATH mode or module mode - you don't want to switch to modules if you start with GOPATH mode
+    * when you have a go.mod file, that now becomes the GOPATH for the project, thus needs to be at the root at that repo
+* go mod init
+* Go's integrated system for dependency managements: versioning, durability, security for code you're working with
+    * the go.mod file will only contain the direct dependencies that this project is importing
+    * NOT a complete manifest of the dependencies that you are using
+* go please server - one instance for every VS codebase that you are running
+    * it reads the module cache that is on your machine
+    * it doesn't look at disk again, only working off of its cache - doesn't know to reload its internal cache
+    * `go clean -modcache`
+* version is in the go.mod path for when we get to a Go 2.X version
+
+Logs:
+* if they are just for logging, then we should just use the go built-in packages for logging to stdout
+* we need readability and signaling for when things are both good and bad
+* don't write loggers that write to anywhere but standard out
+* logging levels: you either need this information or you don't - it's either signal or noise
+* don't use singletons for logging - there are NO global variables, if anything needs to be logged, it should be given in the function
+
+Configuration:
+* questions:
+    * can we restart the application when the config changes? do your best to say yes
+    * where should we store our configurations? 
+    * its a "crime" for a service to crash on startup because something wasn't configured
+    * also bad if the operator of the service cannot install it because they didn't know all the toggles in the config
+    * this all happens when you allow any package to hit configurations
+* rules:
+    * any source code file to use configuration should be main.go
+    * all configs will be retrieved from main and be passed down to other packages/functions
+    * every config value must have a default and MUST work for the development environment (cloen repo and run)
+    * the more of the defaults that work in staging and production, the better your life is
+    * the operator trying to install and run your service should be able to type `--help` to see all config options, their defaults, and how they overwrite them (including the flags)
+    * you can also see all the configs in main.go
+
+
+
 
 
 
