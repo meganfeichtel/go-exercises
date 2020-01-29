@@ -1,0 +1,49 @@
+# Day 3: Building Web Services
+
+
+Tooling: 
+* Only use it when you need it
+* using tooling, you don't have to guess when you're coding
+
+Stack Traces: https://github.com/ardanlabs/gotraining/blob/master/topics/go/profiling/stack_trace/example1/example1.go
+* vs. https://github.com/ardanlabs/gotraining/blob/master/topics/go/profiling/stack_trace/example2/example2.go
+    * everything is backwards in memory - everything is just reversed
+    * we passed [true, false, true, 25] -> the line reads (0xc019010001) -> (0xc019(25) 01(T) 00(F) 01(T))
+    * ever seen in a stack trace? +0x39 -> instruction pointer offset of line of asssembly
+    * gotip tool objdump -S(give assembly representation of binary) -s(filter fnx) main.go
+
+Tracing:
+* https://github.com/ardanlabs/gotraining/blob/master/topics/go/profiling/trace/trace.go
+* do a basic solution for frequency of a string within a bunch of news articles (in about 4-5 seconds)
+* can we make this more efficient? 
+    * `pprof.StartCPUProfile(os.Stdout)` - starts a CPU profile (day1 we did the benchmarks)
+        * make sure you defer the stop: `defer pprof.StopCPUProfile()`
+    * the first run of this took about 5 seconds (a little longer)
+    * but with the output (time ./trace > p.out), we can now use a new tool: `gotip tool pprof [-http :3000] p.out`
+        * in tool: `list freq`: flat column is flat cost (what's costing in performance) and the cumulative is the sum of cost over each instruction
+            * line 59 is taking the slowest part, so focus on that
+        * `web freq`: gets a call path diagram
+            * to be able to open graph, you must have graphviz
+            * the red paths are to tell you where to look more into - the system call is slowing us down, so it's in the machine, not the code efficiency
+* sometimes it's about what's not happening, instead of what this tool says is happening - we need a tracer
+    * comment out the CPU profile, and instead use `trace.Start()` and `trace.Stop`
+    * `gotip tool trace t.out`
+        * the gotip trace tool only works in Chrome lol
+        * in trace/: can see the goroutines and heap down to the microsecond
+        * heap profile:
+            * the GC is maintaining a 4meg heap and the pacing algo is respecting that gogc number if the heap is climbing and then going back to bottom
+            * also shows how much of the memory is transient - bc reading whole file in mem, decodes it, processes it, and then doesn't need it anymore (very heavy on the memory)
+        * go into one of the GC moments we can see all the things we talked about the first day (STW, Marking, dedicated, etc), and then the reallocation of memory right after the GC
+        * small lines under the runtime indicate system calls
+        * this also shows we're only using 1 thread to do application work: one goroutine at any given time (as well as the GCs), even though we have access to more threads
+            * but the order of the file processing doesn't matter in this algo - CONCURRENCY!
+        * double clicking on something allows you to see metrics for all the things with the same label (dragging and creating a windo allows you to select a few)
+            * 2-3% of the full time was used for GC - because it's leveraging so much CPU capacity that we're not using and maintained a 4meg heap (really small)
+* simplest solution to make this concurrent? fanout pattern, give each file its own goroutine (may not scale well)
+    * `freqConcurrent` - use the goroutines for every file
+    * use atomic number for race condition of the `found` metric
+    * cache coherency problem: the found will be copied over to all cores and any update will cause latency (mark other copies as dirty)
+        * so we can create a local found variable in the goroutine and write a defer function that writes the local found variable back to the original found
+    * this was easy BECAUSE we already had the sequential version
+* `freqNumCPU`:
+    * 
