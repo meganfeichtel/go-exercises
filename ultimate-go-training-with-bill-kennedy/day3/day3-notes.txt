@@ -174,3 +174,8 @@ Monitoring/debugging:
 * Gorillamux - most common service; but Bill is going to be using the HTTP Tree router
 * didn't give a clean shutdown to the goroutine, but when it comes to the production restapi, can't just do a kill9
     * need load shedding - shut down and wait a certain amount of time for the requests to finish without accepting any more
+
+Checking the service start up/shut down:
+* start service up, and shut it down
+* start it up, run some load, and then make sure it shuts down (or you have a data race)
+* start it up, send some load, shut it down while there is still load, and make sure it shuts down without timing out (or you have a data race)
