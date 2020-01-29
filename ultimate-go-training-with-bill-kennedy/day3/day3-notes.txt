@@ -199,3 +199,4 @@ Contact:
 * https://education.ardanlabs.com/ if you want more 
 * best way to get in touch with bill is through email: bill@ardanlabs.com
 * "Go in Action" book - good for syntax
+* Blog: https://www.ardanlabs.com/blog/ 
