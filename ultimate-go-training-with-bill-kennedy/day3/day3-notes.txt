@@ -193,3 +193,9 @@ Middleware:
 * want to write out a log for every request made to the API
 * setting business policy to the web frameworks without breakin the rules of setting policy in foundational code
 * `mw ...Middleware` means that the parameter is optional - only do this when it is 1:many relationship
+
+
+Contact:
+* https://education.ardanlabs.com/ if you want more 
+* best way to get in touch with bill is through email: bill@ardanlabs.com
+* "Go in Action" book - good for syntax
