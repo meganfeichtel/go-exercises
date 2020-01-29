@@ -46,4 +46,12 @@ Tracing:
         * so we can create a local found variable in the goroutine and write a defer function that writes the local found variable back to the original found
     * this was easy BECAUSE we already had the sequential version
 * `freqNumCPU`:
-    * 
+    * extra level of complexity: we've added a channel now
+    * this function is much more mechanically sympathetic because it's only writing to `found` the # of core times (8/16)
+    * runs really well with a 40meg heap and the cpu balanced by the computer's hardware requirements
+
+MemCPU: https://github.com/ardanlabs/gotraining/blob/master/topics/go/profiling/memcpu/stream.go 
+* search the entire internet for "elvis" and capitalize the E
+
+
+
